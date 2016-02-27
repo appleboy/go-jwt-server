@@ -12,7 +12,13 @@ import (
 const (
 	JWTSigningKey string = "appleboy"
 	ExpireTime time.Duration = time.Minute * 60 * 24 * 30
+	Realm string = "jwt auth"
 )
+
+func AbortWithError(c *gin.Context, code int, err error) {
+	c.Header("WWW-Authenticate", "JWT realm=" + Realm)
+	c.AbortWithError(401, err)
+}
 
 func Auth(secret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -24,7 +30,7 @@ func Auth(secret string) gin.HandlerFunc {
 		})
 
 		if err != nil {
-			c.AbortWithError(401, err)
+			AbortWithError(c, 401, err)
 		}
 	}
 }
@@ -43,7 +49,7 @@ func LoginHandler(c *gin.Context) {
 	tokenString, err := token.SignedString([]byte(JWTSigningKey))
 
 	if err != nil {
-		c.AbortWithError(401, err)
+		AbortWithError(c, 401, err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -65,7 +71,7 @@ func RefreshHandler(c *gin.Context) {
 	tokenString, err := token.SignedString([]byte(JWTSigningKey))
 
 	if err != nil {
-		c.AbortWithError(401, err)
+		AbortWithError(c, 401, err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
