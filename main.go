@@ -9,7 +9,10 @@ import (
 	"fmt"
 )
 
-const JWTSigningKey string = "appleboy"
+const (
+	JWTSigningKey string = "appleboy"
+	ExpireTime time.Duration = time.Minute * 60 * 24 * 30
+)
 
 func Auth(secret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -26,15 +29,16 @@ func Auth(secret string) gin.HandlerFunc {
 	}
 }
 
-func loginHandler(c *gin.Context) {
+func LoginHandler(c *gin.Context) {
 	username := c.DefaultPostForm("username", "test")
 	password := c.DefaultPostForm("password", "test")
+	expire := time.Now().Add(ExpireTime)
 
 	// Create the token
 	token := jwt.New(jwt.SigningMethodHS256)
 	// Set some claims
 	token.Claims["id"] = username
-	token.Claims["exp"] = time.Now().Add(time.Minute * 60 * 24 * 30).Unix()
+	token.Claims["exp"] = expire.Unix()
 	// Sign and get the complete encoded token as a string
 	tokenString, err := token.SignedString([]byte(JWTSigningKey))
 
@@ -46,11 +50,31 @@ func loginHandler(c *gin.Context) {
 		"username": username,
 		"password": password,
 		"token": tokenString,
-		"expire": time.Now().Add(time.Minute * 60 * 24 * 30).Format(time.RFC3339),
+		"expire": expire.Format(time.RFC3339),
 	})
 }
 
-func helloHandler(c *gin.Context) {
+func RefreshHandler(c *gin.Context) {
+	expire := time.Now().Add(ExpireTime)
+
+	// Create the token
+	token := jwt.New(jwt.SigningMethodHS256)
+	// Set some claims
+	token.Claims["exp"] = expire.Unix()
+	// Sign and get the complete encoded token as a string
+	tokenString, err := token.SignedString([]byte(JWTSigningKey))
+
+	if err != nil {
+		c.AbortWithError(401, err)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"token": tokenString,
+		"expire": expire.Format(time.RFC3339),
+	})
+}
+
+func HelloHandler(c *gin.Context) {
 	currentTime := time.Now()
 	currentTime.Format(time.RFC3339)
 	c.JSON(200, gin.H{
@@ -65,12 +89,13 @@ func main() {
 	if port == "" {
 		port = "8000"
 	}
-	r.POST("/login", loginHandler)
+	r.POST("/login", LoginHandler)
 
 	auth := r.Group("/auth")
 	auth.Use(Auth("test"))
 	{
-		auth.GET("/hello", helloHandler)
+		auth.GET("/hello", HelloHandler)
+		auth.GET("/refresh_token", RefreshHandler)
 	}
 
 	r.Run(":" + port)
