@@ -15,9 +15,13 @@ const (
 	Realm string = "jwt auth"
 )
 
-func AbortWithError(c *gin.Context, code int, err error) {
+func AbortWithError(c *gin.Context, code int, message string) {
 	c.Header("WWW-Authenticate", "JWT realm=" + Realm)
-	c.AbortWithError(401, err)
+	c.JSON(code, gin.H{
+		"code": code,
+		"message": message,
+	})
+	c.Abort()
 }
 
 func Auth(secret string) gin.HandlerFunc {
@@ -30,7 +34,7 @@ func Auth(secret string) gin.HandlerFunc {
 		})
 
 		if err != nil {
-			AbortWithError(c, 401, err)
+			AbortWithError(c, 401, "Invaild User Token")
 		}
 	}
 }
@@ -49,7 +53,7 @@ func LoginHandler(c *gin.Context) {
 	tokenString, err := token.SignedString([]byte(JWTSigningKey))
 
 	if err != nil {
-		AbortWithError(c, 401, err)
+		AbortWithError(c, 401, "Create JWT Token faild")
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -71,7 +75,7 @@ func RefreshHandler(c *gin.Context) {
 	tokenString, err := token.SignedString([]byte(JWTSigningKey))
 
 	if err != nil {
-		AbortWithError(c, 401, err)
+		AbortWithError(c, 401, "Create JWT Token faild")
 	}
 
 	c.JSON(http.StatusOK, gin.H{
