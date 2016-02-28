@@ -1,26 +1,26 @@
 package main
 
 import (
-	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/gin-gonic/gin"
+	"fmt"
 	"github.com/appleboy/gin-jwt-server/config"
 	"github.com/appleboy/gin-jwt-server/model"
+	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
+	"github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
 	"github.com/satori/go.uuid"
-	"github.com/go-sql-driver/mysql"
+	"log"
 	"net"
 	"net/http"
-	"strconv"
 	"os"
+	"strconv"
 	"time"
-	"fmt"
-	"log"
 )
 
 const (
-	JWTSigningKey string = "appleboy"
-	ExpireTime time.Duration = time.Minute * 60 * 24 * 30
-	Realm string = "jwt auth"
+	JWTSigningKey string        = "appleboy"
+	ExpireTime    time.Duration = time.Minute * 60 * 24 * 30
+	Realm         string        = "jwt auth"
 )
 
 var (
@@ -28,9 +28,9 @@ var (
 )
 
 func AbortWithError(c *gin.Context, code int, message string) {
-	c.Header("WWW-Authenticate", "JWT realm=" + Realm)
+	c.Header("WWW-Authenticate", "JWT realm="+Realm)
 	c.JSON(code, gin.H{
-		"code": code,
+		"code":    code,
 		"message": message,
 	})
 	c.Abort()
@@ -71,8 +71,8 @@ func LoginHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"username": username,
 		"password": password,
-		"token": tokenString,
-		"expire": expire.Format(time.RFC3339),
+		"token":    tokenString,
+		"expire":   expire.Format(time.RFC3339),
 	})
 }
 
@@ -91,7 +91,7 @@ func RefreshHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"token": tokenString,
+		"token":  tokenString,
 		"expire": expire.Format(time.RFC3339),
 	})
 }
@@ -108,13 +108,13 @@ func HelloHandler(c *gin.Context) {
 func initDB() {
 	configs := config.ReadConfig("config.json")
 
-	connectStr := &mysql.Config {
-		User: configs.DB_USERNAME,
+	connectStr := &mysql.Config{
+		User:   configs.DB_USERNAME,
 		Passwd: configs.DB_PASSWORD,
-		Net: "tcp",
-		Addr: net.JoinHostPort(configs.DB_HOST, strconv.Itoa(configs.DB_PORT)),
+		Net:    "tcp",
+		Addr:   net.JoinHostPort(configs.DB_HOST, strconv.Itoa(configs.DB_PORT)),
 		DBName: configs.DB_NAME,
-		Params: map[string]string {
+		Params: map[string]string{
 			"charset": "utf8",
 		},
 	}

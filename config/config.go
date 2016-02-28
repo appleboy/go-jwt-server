@@ -15,11 +15,11 @@ import (
 
 //Stores the main configuration for the application
 type Configuration struct {
-	DB_HOST string
+	DB_HOST     string
 	DB_USERNAME string
 	DB_PASSWORD string
-	DB_PORT int
-	DB_NAME string
+	DB_PORT     int
+	DB_NAME     string
 }
 
 var err error
