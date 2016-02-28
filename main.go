@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/appleboy/gin-jwt-server/config"
-	"github.com/appleboy/gin-jwt-server/model"
 	"github.com/appleboy/gin-jwt-server/input"
+	"github.com/appleboy/gin-jwt-server/model"
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
@@ -43,7 +44,6 @@ func Auth(secret string) gin.HandlerFunc {
 		_, err := jwt.ParseFromRequest(c.Request, func(token *jwt.Token) (interface{}, error) {
 			b := ([]byte(JWTSigningKey))
 
-			fmt.Println(b)
 			return b, nil
 		})
 
@@ -91,8 +91,8 @@ func LoginHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"token":    tokenString,
-		"expire":   expire.Format(time.RFC3339),
+		"token":  tokenString,
+		"expire": expire.Format(time.RFC3339),
 	})
 }
 
@@ -221,5 +221,5 @@ func main() {
 		auth.GET("/refresh_token", RefreshHandler)
 	}
 
-	r.Run(":" + port)
+	endless.ListenAndServe(":"+port, r)
 }
