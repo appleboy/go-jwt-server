@@ -41,11 +41,13 @@ func AbortWithError(c *gin.Context, code int, message string) {
 
 func Auth(secret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		_, err := jwt.ParseFromRequest(c.Request, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseFromRequest(c.Request, func(token *jwt.Token) (interface{}, error) {
 			b := ([]byte(JWTSigningKey))
 
 			return b, nil
 		})
+
+		log.Printf("Current user id: %s", token.Claims["id"])
 
 		if err != nil {
 			AbortWithError(c, http.StatusUnauthorized, "Invaild User Token")
@@ -80,7 +82,7 @@ func LoginHandler(c *gin.Context) {
 	// Create the token
 	token := jwt.New(jwt.SigningMethodHS256)
 	// Set some claims
-	token.Claims["id"] = form.Username
+	token.Claims["id"] = user.Id
 	token.Claims["exp"] = expire.Unix()
 	// Sign and get the complete encoded token as a string
 	tokenString, err := token.SignedString([]byte(JWTSigningKey))
