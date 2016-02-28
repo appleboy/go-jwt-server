@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/appleboy/gin-jwt-server/config"
 	"github.com/appleboy/gin-jwt-server/model"
+	"github.com/appleboy/gin-jwt-server/input"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
@@ -53,14 +54,8 @@ func Auth(secret string) gin.HandlerFunc {
 	}
 }
 
-// Binding from JSON
-type Login struct {
-	Username string `form:"username" json:"username" binding:"required"`
-	Password string `form:"password" json:"password" binding:"required"`
-}
-
 func LoginHandler(c *gin.Context) {
-	var form Login
+	var form input.Login
 	var user model.User
 
 	if c.BindJSON(&form) != nil {
@@ -102,8 +97,7 @@ func LoginHandler(c *gin.Context) {
 }
 
 func RegisterHandler(c *gin.Context) {
-
-	var form Login
+	var form input.Login
 	var user model.User
 
 	if c.BindJSON(&form) != nil {
