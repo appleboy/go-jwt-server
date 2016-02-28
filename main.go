@@ -9,6 +9,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
 	"github.com/satori/go.uuid"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net"
 	"net/http"
@@ -46,33 +47,100 @@ func Auth(secret string) gin.HandlerFunc {
 		})
 
 		if err != nil {
-			AbortWithError(c, 401, "Invaild User Token")
+			AbortWithError(c, http.StatusUnauthorized, "Invaild User Token")
+			return
 		}
 	}
 }
 
+// Binding from JSON
+type Login struct {
+	Username string `form:"username" json:"username" binding:"required"`
+	Password string `form:"password" json:"password" binding:"required"`
+}
+
 func LoginHandler(c *gin.Context) {
-	username := c.DefaultPostForm("username", "test")
-	password := c.DefaultPostForm("password", "test")
+	var form Login
+	var user model.User
+
+	if c.BindJSON(&form) != nil {
+		AbortWithError(c, http.StatusBadRequest, "Missing usename or password")
+		return
+	}
+
+	found, err := orm.Where("username = ?", form.Username).Get(&user)
+
+	if err != nil {
+		AbortWithError(c, http.StatusInternalServerError, "DB Query Error")
+		return
+	}
+
+	if found == false || bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(form.Password)) != nil {
+		AbortWithError(c, http.StatusUnauthorized, "Incorrect Username / Password")
+		return
+	}
+
 	expire := time.Now().Add(ExpireTime)
 
 	// Create the token
 	token := jwt.New(jwt.SigningMethodHS256)
 	// Set some claims
-	token.Claims["id"] = username
+	token.Claims["id"] = form.Username
 	token.Claims["exp"] = expire.Unix()
 	// Sign and get the complete encoded token as a string
 	tokenString, err := token.SignedString([]byte(JWTSigningKey))
 
 	if err != nil {
-		AbortWithError(c, 401, "Create JWT Token faild")
+		AbortWithError(c, http.StatusUnauthorized, "Create JWT Token faild")
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"username": username,
-		"password": password,
 		"token":    tokenString,
 		"expire":   expire.Format(time.RFC3339),
+	})
+}
+
+func RegisterHandler(c *gin.Context) {
+
+	var form Login
+	var user model.User
+
+	if c.BindJSON(&form) != nil {
+		AbortWithError(c, http.StatusBadRequest, "Missing usename or password")
+		return
+	}
+
+	has, err := orm.Where("username = ?", form.Username).Get(&user)
+
+	if has {
+		AbortWithError(c, http.StatusBadRequest, "username is already exist.")
+		return
+	}
+
+	userId := uuid.NewV4().String()
+
+	if digest, err := bcrypt.GenerateFromPassword([]byte(form.Password), bcrypt.DefaultCost); err != nil {
+		AbortWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	} else {
+		form.Password = string(digest)
+	}
+
+	_, err = orm.Insert(&model.User{
+		Id:       userId,
+		Username: form.Username,
+		Password: form.Password,
+	})
+
+	if err != nil {
+		AbortWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    "200",
+		"message": "ok",
 	})
 }
 
@@ -87,7 +155,8 @@ func RefreshHandler(c *gin.Context) {
 	tokenString, err := token.SignedString([]byte(JWTSigningKey))
 
 	if err != nil {
-		AbortWithError(c, 401, "Create JWT Token faild")
+		AbortWithError(c, http.StatusUnauthorized, "Create JWT Token faild")
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -149,6 +218,7 @@ func main() {
 	initDB()
 
 	r.POST("/login", LoginHandler)
+	r.POST("/register", RegisterHandler)
 
 	auth := r.Group("/auth")
 	auth.Use(Auth("test"))
