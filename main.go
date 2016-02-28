@@ -171,7 +171,7 @@ func HelloHandler(c *gin.Context) {
 }
 
 func initDB() {
-	configs := config.ReadConfig("config.json")
+	configs, _ := config.ReadConfig("config.json")
 
 	connectStr := &mysql.Config{
 		User:   configs.DB_USERNAME,

@@ -1,10 +1,3 @@
-/*
-Configuration package is used to read the configuration file
-config.json which stores the server port for current implementation
-    {
-        "ServerPort": ":8081"
-    }
-*/
 package config
 
 import (
@@ -27,17 +20,20 @@ var config Configuration
 
 //ReadConfig will read the configuration json file to read the parameters
 //which will be passed in the config file
-func ReadConfig(fileName string) Configuration {
+func ReadConfig(fileName string) (Configuration, error) {
 
 	configFile, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		log.Fatalf("Unable to read config file '%s'", fileName)
+		log.Printf("Unable to read config file '%s'", fileName)
+		return config, err
 	}
 
 	err = json.Unmarshal(configFile, &config)
+
 	if err != nil {
-		log.Print(err)
+		log.Printf("Unable to Unmarshal json: '%s'", err)
+		return config, err
 	}
 
-	return config
+	return config, nil
 }
