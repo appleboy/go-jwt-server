@@ -6,6 +6,7 @@ services:
   - mysql
 
 before_script:
+  - cp config.json.example config.json
   - mysql -e 'CREATE DATABASE IF NOT EXISTS example;'
   - mysql example < db/table.sql
 
