@@ -39,7 +39,7 @@ func AbortWithError(c *gin.Context, code int, message string) {
 	c.Abort()
 }
 
-func Auth(secret string) gin.HandlerFunc {
+func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, err := jwt.ParseFromRequest(c.Request, func(token *jwt.Token) (interface{}, error) {
 			b := ([]byte(JWTSigningKey))
@@ -217,7 +217,7 @@ func main() {
 	r.POST("/register", RegisterHandler)
 
 	auth := r.Group("/auth")
-	auth.Use(Auth("test"))
+	auth.Use(Auth())
 	{
 		auth.GET("/hello", HelloHandler)
 		auth.GET("/refresh_token", RefreshHandler)
