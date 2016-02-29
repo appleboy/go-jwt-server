@@ -110,7 +110,7 @@ func RegisterHandler(c *gin.Context) {
 	has, err := orm.Where("username = ?", form.Username).Get(&user)
 
 	if has {
-		AbortWithError(c, http.StatusBadRequest, "username is already exist.")
+		AbortWithError(c, http.StatusBadRequest, "Username is already exist")
 		return
 	}
 
