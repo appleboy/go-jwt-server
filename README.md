@@ -1,2 +1,3 @@
 # gin-jwt-server
-JWT middleware for gin framework server
+
+JWT middleware server written in golang for gin framework
