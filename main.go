@@ -27,7 +27,8 @@ const (
 )
 
 var (
-	orm *xorm.Engine
+	orm         *xorm.Engine
+	currentUser model.User
 )
 
 func AbortWithError(c *gin.Context, code int, message string) {
@@ -41,6 +42,7 @@ func AbortWithError(c *gin.Context, code int, message string) {
 
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var user model.User
 		token, err := jwt.ParseFromRequest(c.Request, func(token *jwt.Token) (interface{}, error) {
 			b := ([]byte(JWTSigningKey))
 
@@ -53,6 +55,15 @@ func Auth() gin.HandlerFunc {
 		}
 
 		log.Printf("Current user id: %s", token.Claims["id"])
+
+		_, err = orm.Where("id = ?", token.Claims["id"]).Get(&user)
+
+		if err != nil {
+			AbortWithError(c, http.StatusInternalServerError, "DB Query Error")
+			return
+		}
+
+		currentUser = user
 	}
 }
 
@@ -166,7 +177,7 @@ func HelloHandler(c *gin.Context) {
 	currentTime.Format(time.RFC3339)
 	c.JSON(200, gin.H{
 		"current_time": currentTime,
-		"text":         "You are login now.",
+		"text":         "Hi " + currentUser.Username + ", You are login now.",
 	})
 }
 
