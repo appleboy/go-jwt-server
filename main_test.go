@@ -5,9 +5,11 @@ import (
 	"net/http/httptest"
 	"encoding/json"
 	"log"
+	"net/http"
 	"github.com/appleboy/gin-jwt-server/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/icrowley/fake"
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -121,4 +123,38 @@ func TestLoginHandler(t *testing.T) {
 
 			token = rd["token"].(string)
 		})
+}
+
+func Result(t *testing.T, router *gin.Engine, path string, token string, code int) {
+	// RUN
+	req, err := http.NewRequest("GET", path, nil)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Header.Set("Authorization", "Bearer " + token)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// TEST
+	assert.Equal(t, w.Code, code)
+}
+
+func TestHelloHandler(t *testing.T) {
+	initDB()
+
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	v1 := r.Group("/v1")
+	v1.Use(Auth())
+	{
+		v1.GET("/hello", HelloHandler)
+		v1.GET("/refresh_token", RefreshHandler)
+	}
+
+	Result(t, r, "/v1/hello", token, 200)
+	Result(t, r, "/v1/refresh_token", token, 200)
+	Result(t, r, "/v1/refresh_token", "1234", 401)
 }

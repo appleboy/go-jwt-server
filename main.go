@@ -47,12 +47,12 @@ func Auth() gin.HandlerFunc {
 			return b, nil
 		})
 
-		log.Printf("Current user id: %s", token.Claims["id"])
-
 		if err != nil {
 			AbortWithError(c, http.StatusUnauthorized, "Invaild User Token")
 			return
 		}
+
+		log.Printf("Current user id: %s", token.Claims["id"])
 	}
 }
 

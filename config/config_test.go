@@ -16,7 +16,7 @@ func TestMissingFile(t *testing.T) {
 }
 
 func TestWrongJSONFormat(t *testing.T) {
-	content := []byte("{\"DB_HOST\": \"127.0.0.1\"\"DB_USERNAME\": \"root\",\"DB_PASSWORD\": \"\",\"DB_PORT\": 3306,\"DB_NAME\": \"test\"}")
+	content := []byte(`{"DB_HOST": "127.0.0.1""DB_USERNAME": "root","DB_PASSWORD": "","DB_PORT": 3306,"DB_NAME": "test"}`)
 	filename := "tempfile"
 
 	if err := ioutil.WriteFile(filename, content, 0644); err != nil {
@@ -32,7 +32,7 @@ func TestWrongJSONFormat(t *testing.T) {
 }
 
 func TestReadConfig(t *testing.T) {
-	content := []byte("{\"DB_HOST\": \"127.0.0.1\",\"DB_USERNAME\": \"root\",\"DB_PASSWORD\": \"\",\"DB_PORT\": 3306,\"DB_NAME\": \"test\"}")
+	content := []byte(`{"DB_HOST": "127.0.0.1","DB_USERNAME": "root","DB_PASSWORD": "","DB_PORT": 3306,"DB_NAME": "test"}`)
 	filename := "tempfile"
 
 	if err := ioutil.WriteFile(filename, content, 0644); err != nil {
