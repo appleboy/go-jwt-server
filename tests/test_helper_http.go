@@ -2,25 +2,26 @@ package tests
 
 import (
 	"bytes"
-	"strings"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"net/http/httptest"
-	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 // request handling func type to replace gin.HandlerFunc
 type RequestFunc func(*gin.Context)
+
 // response handling func type
 type ResponseFunc func(*httptest.ResponseRecorder)
 
 type RequestConfig struct {
-	Method string
-	Path string
-	Body string
-	Headers map[string]string
+	Method      string
+	Path        string
+	Body        string
+	Headers     map[string]string
 	Middlewares []gin.HandlerFunc
-	Handler RequestFunc
-	Finaliser ResponseFunc
+	Handler     RequestFunc
+	Finaliser   ResponseFunc
 }
 
 func RunRequest(rc RequestConfig) {
@@ -53,14 +54,14 @@ func RunRequest(rc RequestConfig) {
 			req.Header.Set(k, v)
 		}
 	} else if rc.Method == "POST" || rc.Method == "PUT" {
-		if strings.HasPrefix(rc.Body, "{"){
+		if strings.HasPrefix(rc.Body, "{") {
 			req.Header.Set("Content-Type", "application/json")
 		} else {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		}
 	}
 
-	r.Handle(rc.Method, rc.Path, func(c *gin.Context){
+	r.Handle(rc.Method, rc.Path, func(c *gin.Context) {
 		//change argument if necessary here
 		rc.Handler(c)
 	})
@@ -75,9 +76,9 @@ func RunRequest(rc RequestConfig) {
 
 func RunSimpleGet(path string, handler RequestFunc, reply ResponseFunc) {
 	rc := RequestConfig{
-		Method: "GET",
-		Path: path,
-		Handler: handler,
+		Method:    "GET",
+		Path:      path,
+		Handler:   handler,
 		Finaliser: reply,
 	}
 	RunRequest(rc)
@@ -85,10 +86,10 @@ func RunSimpleGet(path string, handler RequestFunc, reply ResponseFunc) {
 
 func RunSimplePost(path, body string, handler RequestFunc, reply ResponseFunc) {
 	rc := RequestConfig{
-		Method: "POST",
-		Path: path,
-		Body: body,
-		Handler: handler,
+		Method:    "POST",
+		Path:      path,
+		Body:      body,
+		Handler:   handler,
 		Finaliser: reply,
 	}
 	RunRequest(rc)
@@ -96,10 +97,10 @@ func RunSimplePost(path, body string, handler RequestFunc, reply ResponseFunc) {
 
 func RunGetWithHeaders(path string, headers map[string]string, handler RequestFunc, reply ResponseFunc) {
 	rc := RequestConfig{
-		Method: "GET",
-		Path: path,
-		Headers: headers,
-		Handler: handler,
+		Method:    "GET",
+		Path:      path,
+		Headers:   headers,
+		Handler:   handler,
 		Finaliser: reply,
 	}
 	RunRequest(rc)
@@ -107,23 +108,23 @@ func RunGetWithHeaders(path string, headers map[string]string, handler RequestFu
 
 func RunGetWithMiddlewares(path string, mws []gin.HandlerFunc, handler RequestFunc, reply ResponseFunc) {
 	rc := RequestConfig{
-		Method: "GET",
-		Path: path,
+		Method:      "GET",
+		Path:        path,
 		Middlewares: mws,
-		Handler: handler,
-		Finaliser: reply,
+		Handler:     handler,
+		Finaliser:   reply,
 	}
 	RunRequest(rc)
 }
 
 func RunPostWithMiddlewares(path, body string, mws []gin.HandlerFunc, handler RequestFunc, reply ResponseFunc) {
 	rc := RequestConfig{
-		Method: "POST",
-		Path: path,
-		Body: body,
+		Method:      "POST",
+		Path:        path,
+		Body:        body,
 		Middlewares: mws,
-		Handler: handler,
-		Finaliser: reply,
+		Handler:     handler,
+		Finaliser:   reply,
 	}
 	RunRequest(rc)
 }

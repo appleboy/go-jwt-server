@@ -1,28 +1,28 @@
 package main
 
 import (
-	"testing"
-	"net/http/httptest"
 	"encoding/json"
+	"github.com/appleboy/gin-jwt-server/tests"
+	"github.com/gin-gonic/gin"
+	"github.com/icrowley/fake"
+	"github.com/stretchr/testify/assert"
 	"log"
 	"net/http"
-	"github.com/appleboy/gin-jwt-server/tests"
-	"github.com/stretchr/testify/assert"
-	"github.com/icrowley/fake"
-	"github.com/gin-gonic/gin"
+	"net/http/httptest"
+	"testing"
 )
 
 var (
 	username string = fake.FullName()
 	password string = "1234"
-	token string
+	token    string
 )
 
 func TestRegisterHandler(t *testing.T) {
 	initDB()
 
 	// Missing usename or password
-	data := `{"username":"`+username+`"}`
+	data := `{"username":"` + username + `"}`
 	tests.RunSimplePost("/register", data,
 		RegisterHandler,
 		func(r *httptest.ResponseRecorder) {
@@ -38,7 +38,7 @@ func TestRegisterHandler(t *testing.T) {
 		})
 
 	// Register success.
-	data = `{"username":"` + username + `","password":"`+password+`"}`
+	data = `{"username":"` + username + `","password":"` + password + `"}`
 	tests.RunSimplePost("/register", data,
 		RegisterHandler,
 		func(r *httptest.ResponseRecorder) {
@@ -54,7 +54,7 @@ func TestRegisterHandler(t *testing.T) {
 		})
 
 	// Username is already exist.
-	data = `{"username":"`+username+`","password":"`+password+`"}`
+	data = `{"username":"` + username + `","password":"` + password + `"}`
 	tests.RunSimplePost("/register", data,
 		RegisterHandler,
 		func(r *httptest.ResponseRecorder) {
@@ -74,7 +74,7 @@ func TestLoginHandler(t *testing.T) {
 	initDB()
 
 	// Missing usename or password
-	data := `{"username":"`+username+`"}`
+	data := `{"username":"` + username + `"}`
 	tests.RunSimplePost("/login", data,
 		LoginHandler,
 		func(r *httptest.ResponseRecorder) {
@@ -90,7 +90,7 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 	// incorrect password
-	data = `{"username":"`+username+`","password":"test"}`
+	data = `{"username":"` + username + `","password":"test"}`
 	tests.RunSimplePost("/login", data,
 		LoginHandler,
 		func(r *httptest.ResponseRecorder) {
@@ -106,7 +106,7 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 	// login success
-	data = `{"username":"`+username+`","password":"`+password+`"}`
+	data = `{"username":"` + username + `","password":"` + password + `"}`
 	tests.RunSimplePost("/login", data,
 		LoginHandler,
 		func(r *httptest.ResponseRecorder) {
@@ -133,7 +133,7 @@ func Result(t *testing.T, router *gin.Engine, path string, token string, code in
 		log.Fatal(err)
 	}
 
-	req.Header.Set("Authorization", "Bearer " + token)
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
