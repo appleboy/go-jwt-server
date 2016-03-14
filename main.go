@@ -215,7 +215,9 @@ func initDB() {
 
 func main() {
 	port := os.Getenv("PORT")
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
 
 	if port == "" {
 		port = "8000"
