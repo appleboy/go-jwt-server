@@ -125,21 +125,13 @@ func TestLoginHandler(t *testing.T) {
 		})
 }
 
-func Result(t *testing.T, router *gin.Engine, path string, token string, code int) {
-	// RUN
-	req, err := http.NewRequest("GET", path, nil)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func performRequest(r http.Handler, method, path string, token string) *httptest.ResponseRecorder {
+	req, _ := http.NewRequest(method, path, nil)
 	req.Header.Set("Authorization", "Bearer "+token)
-
 	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
+	r.ServeHTTP(w, req)
 
-	// TEST
-	assert.Equal(t, w.Code, code)
+	return w
 }
 
 func TestHelloHandler(t *testing.T) {
@@ -154,7 +146,12 @@ func TestHelloHandler(t *testing.T) {
 		v1.GET("/refresh_token", RefreshHandler)
 	}
 
-	Result(t, r, "/v1/hello", token, 200)
-	Result(t, r, "/v1/refresh_token", token, 200)
-	Result(t, r, "/v1/refresh_token", "1234", 401)
+	w := performRequest(r, "GET", "/v1/hello", token)
+	assert.Equal(t, w.Code, http.StatusOK)
+
+	w = performRequest(r, "GET", "/v1/refresh_token", token)
+	assert.Equal(t, w.Code, http.StatusOK)
+
+	w = performRequest(r, "GET", "/v1/refresh_token", "1234")
+	assert.Equal(t, w.Code, http.StatusUnauthorized)
 }
