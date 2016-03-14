@@ -34,7 +34,7 @@ func TestRegisterHandler(t *testing.T) {
 			}
 
 			assert.Equal(t, rd["message"], "Missing usename or password")
-			assert.Equal(t, r.Code, 400)
+			assert.Equal(t, r.Code, http.StatusBadRequest)
 		})
 
 	// Register success.
@@ -50,7 +50,7 @@ func TestRegisterHandler(t *testing.T) {
 			}
 
 			assert.Equal(t, rd["message"], "ok")
-			assert.Equal(t, r.Code, 200)
+			assert.Equal(t, r.Code, http.StatusOK)
 		})
 
 	// Username is already exist.
@@ -66,7 +66,7 @@ func TestRegisterHandler(t *testing.T) {
 			}
 
 			assert.Equal(t, rd["message"], "Username is already exist")
-			assert.Equal(t, r.Code, 400)
+			assert.Equal(t, r.Code, http.StatusBadRequest)
 		})
 }
 
@@ -86,7 +86,7 @@ func TestLoginHandler(t *testing.T) {
 			}
 
 			assert.Equal(t, rd["message"], "Missing usename or password")
-			assert.Equal(t, r.Code, 400)
+			assert.Equal(t, r.Code, http.StatusBadRequest)
 		})
 
 	// incorrect password
@@ -102,7 +102,7 @@ func TestLoginHandler(t *testing.T) {
 			}
 
 			assert.Equal(t, rd["message"], "Incorrect Username / Password")
-			assert.Equal(t, r.Code, 401)
+			assert.Equal(t, r.Code, http.StatusUnauthorized)
 		})
 
 	// login success
@@ -119,7 +119,7 @@ func TestLoginHandler(t *testing.T) {
 
 			assert.Contains(t, "token", r.Body.String())
 			assert.Contains(t, "expire", r.Body.String())
-			assert.Equal(t, r.Code, 200)
+			assert.Equal(t, r.Code, http.StatusOK)
 
 			token = rd["token"].(string)
 		})
