@@ -8,6 +8,7 @@ import (
 	"testing"
 )
 
+// Test file is missing
 func TestMissingFile(t *testing.T) {
 	filename := "test"
 	_, err := ReadConfig(filename)
@@ -15,6 +16,7 @@ func TestMissingFile(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+// Test wrong json format
 func TestWrongJSONFormat(t *testing.T) {
 	content := []byte(`{"DB_HOST": "127.0.0.1""DB_USERNAME": "root","DB_PASSWORD": "","DB_PORT": 3306,"DB_NAME": "test"}`)
 	filename := "tempfile"
@@ -26,11 +28,13 @@ func TestWrongJSONFormat(t *testing.T) {
 	// clean up
 	defer os.Remove(filename)
 
+	// parse JSON format error
 	_, err := ReadConfig(filename)
 
 	assert.NotNil(t, err)
 }
 
+// Test config file.
 func TestReadConfig(t *testing.T) {
 	content := []byte(`{"DB_HOST": "127.0.0.1","DB_USERNAME": "root","DB_PASSWORD": "","DB_PORT": 3306,"DB_NAME": "test"}`)
 	filename := "tempfile"
