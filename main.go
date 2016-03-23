@@ -5,6 +5,7 @@ import (
 	"github.com/appleboy/gin-jwt-server/config"
 	"github.com/appleboy/gin-jwt-server/input"
 	"github.com/appleboy/gin-jwt-server/model"
+	"github.com/appleboy/gin-status-api"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
@@ -234,6 +235,12 @@ func main() {
 	{
 		auth.GET("/hello", HelloHandler)
 		auth.GET("/refresh_token", RefreshHandler)
+	}
+
+	api := r.Group("/api")
+	api.Use(Auth())
+	{
+		api.GET("/status", status.StatusHandler)
 	}
 
 	endless.ListenAndServe(":"+port, r)

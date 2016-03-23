@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/appleboy/gin-jwt-server/tests"
+	"github.com/appleboy/gin-status-api"
 	"github.com/gin-gonic/gin"
 	"github.com/icrowley/fake"
 	"github.com/stretchr/testify/assert"
@@ -154,4 +155,19 @@ func TestHelloHandler(t *testing.T) {
 
 	w = performRequest(r, "GET", "/v1/refresh_token", "1234")
 	assert.Equal(t, w.Code, http.StatusUnauthorized)
+}
+
+func TestStatusHandler(t *testing.T) {
+	initDB()
+
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	api := r.Group("/api")
+	api.Use(Auth())
+	{
+		api.GET("/status", status.StatusHandler)
+	}
+
+	w := performRequest(r, "GET", "/api/status", token)
+	assert.Equal(t, w.Code, http.StatusOK)
 }
